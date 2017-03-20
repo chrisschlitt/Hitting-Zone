@@ -7,6 +7,7 @@ WWDC 2017 Scholarship Application
 @data hits: [[Int]] -  array of coordinates in a 1-100 plane corresponding 
                        to locations in the strike zone where a baseball 
                        player has hit the ball
+
 @data strikes: [[Int]] -  array of coordinates in a 1-100 plane corresponding 
                        to locations in the strike zone where a baseball 
                        player has swung and missed
