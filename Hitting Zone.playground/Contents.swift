@@ -19,14 +19,84 @@ import UIKit
 import PlaygroundSupport
 
 
+func loadData(csv: String) -> [[Int]] {
+    let fileURL = Bundle.main.url(forResource: csv, withExtension: "csv")
+    var content: String!
+    do {
+        content = try String(contentsOf: fileURL!, encoding: String.Encoding.utf8)
+    } catch {
+        print("File error")
+    }
+    
+    print("Here")
+    
+    let items = content.components(separatedBy: "\n")
+    var valX = [Double]()
+    var valY = [Double]()
+    for i in 1..<items.count {
+        print(items[i])
+        let lineData = (items[i].trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)).components(separatedBy: ",")
+        print(lineData)
+        if(lineData.count < 2){
+            continue
+        }
+        
+        valX.append(Double(lineData[0])!)
+        valY.append(Double(lineData[1])!)
+    }
+    
+    print("Here")
+    
+    let maxX = valX.max()
+    let minX = valX.min()
+    let maxY = valY.max()
+    let minY = valY.min()
+    
+    var convertedPoints = [[Int]]()
+    
+    for i in 0..<valX.count {
+        valX[i] = ((valX[i] + Double(abs(minX!))) / (Double(abs(minX!)) + maxX!)) * 99
+        valY[i] = ((valY[i] + Double(abs(minY!))) / (Double(abs(minY!)) + maxY!)) * 99
+        convertedPoints.append([Int(valX[i]), Int(valY[i])])
+    }
+    
+    return convertedPoints
+}
+
 
 // Create hits and strikes demo data
+/*
 var hits = [[Int]]()
 var strikes = [[Int]]()
 for hit in 0..<100 {
     hits.append([Int(arc4random_uniform(99)), Int(arc4random_uniform(99))])
     strikes.append([Int(arc4random_uniform(99)), Int(arc4random_uniform(99))])
 }
+*/
+
+var hits = loadData(csv: "FrancoHits")
+var strikes = loadData(csv: "FrancoStrikes")
+
+
+
+
+
+
+
+
+
+/*
+let file = "FrancoHits.csv" // My change to your code - yours is presumably set off-screen
+if let directories = dirs {
+    let dir = directories[0]; //documents directory
+    let path = dir.stringByAppendingPathComponent(file);
+    
+    //read
+    let content = NSString(contentsOfFile: path, usedEncoding: nil, error: nil)
+    // works...
+}
+
+*/
 
 
 
@@ -307,11 +377,17 @@ for i in 0..<battersBoxViews.count {
         }
         // break
         
-        
+    }
+}
+
+battersBoxView
+
+for i in 0..<battersBoxViews.count {
+    for ii in 0..<battersBoxViews[i].count {
         // Now add the barrier gradient views
+        let battersBoxViewRef = battersBoxViews[i][ii]
         
-        
-        referenceColors = [[0, -1], [1, 0], [0, 1], [-1, 0]]
+        var referenceColors = [[0, -1], [1, 0], [0, 1], [-1, 0]]
         for j in 0..<referenceColors.count{
             // Correct edge cases
             if(referenceColors[j][0] + ii < 0){
