@@ -23,17 +23,19 @@ import PlaygroundSupport
 // Create hits and strikes demo data
 var hits = [[Int]]()
 var strikes = [[Int]]()
-for hit in 0..<500 {
+for hit in 0..<100 {
     hits.append([Int(arc4random_uniform(99)), Int(arc4random_uniform(99))])
     strikes.append([Int(arc4random_uniform(99)), Int(arc4random_uniform(99))])
 }
+
+
 
 /*
  * Define how detailed the resulting view will be
  * In the form of a "box size" between 1 and 100
  * and a divisor of 100
  */
-let detailed = 50
+let detailed = 5
 let numberOfBoxes = 100 / detailed
 let hitColor = UIColor.red
 let strikeColor = UIColor.blue
@@ -150,7 +152,7 @@ battersBoxView
 for i in 0..<battersBoxViews.count {
     for ii in 0..<battersBoxViews[i].count {
         let battersBoxViewRef = battersBoxViews[i][ii]
-        
+        print("========")
         
         var referenceColors: [[Int]] = [[-1, -1], [1, -1], [1, 1], [-1, 1]]
         for j in 0..<referenceColors.count {
@@ -171,20 +173,20 @@ for i in 0..<battersBoxViews.count {
             let adjY1 = 0
             let adjX2 = 0
             let adjY2 = referenceColors[j][1]
-            
+            /*
             print("--------")
             print("Ref: \(j)")
             print("X = \(ii)")
             print("Y = \(i)")
             print("Frame: \(battersBoxViewRef.frame.minX), \(battersBoxViewRef.frame.minY) -- \(battersBoxViewRef.frame.width), \(battersBoxViewRef.frame.height)")
             // print("Bounds: \(battersBoxViewRef.bounds.minX), \(battersBoxViewRef.bounds.minY)")
-            // print("RefX = \(referenceColors[j][0])")
-            // print("RefY = \(referenceColors[j][1])")
-            // print("AdjX1 = \(adjX1)")
-            // print("AdjY1 = \(adjY1)")
-            // print("AdjX2 = \(adjX2)")
-            // print("AdjY2 = \(adjY2)")
-            
+            print("RefX = \(referenceColors[j][0])")
+            print("RefY = \(referenceColors[j][1])")
+            print("AdjX1 = \(adjX1)")
+            print("AdjY1 = \(adjY1)")
+            print("AdjX2 = \(adjX2)")
+            print("AdjY2 = \(adjY2)")
+            */
             
             // Get target color
             let colorA = UIColor.blend(color1: battersBoxViewRef.backgroundColor!, color2: battersBoxViews[referenceColors[j][1] + i][referenceColors[j][0] + ii].backgroundColor!)
@@ -204,9 +206,11 @@ for i in 0..<battersBoxViews.count {
             
             
             
+            // let sideLength = CGFloat((Double(((battersBoxViewRef.frame.width / 2.0) * (battersBoxViewRef.frame.width / 2.0)) / 2.0).squareRoot()) * 2.0 * (2.0/(2.0).squareRoot()))
             let sideLength = CGFloat((Double(((battersBoxViewRef.frame.width / 2.0) * (battersBoxViewRef.frame.width / 2.0)) / 2.0).squareRoot()) * 2.0)
             let additionalDistance = (sideLength - (battersBoxViewRef.frame.width / 2.0)) / 2.0
             
+            print("Original: \(battersBoxViewRef.frame.width)")
             print("Length: \(sideLength)")
             print("Additional: \(additionalDistance)")
             
@@ -222,7 +226,7 @@ for i in 0..<battersBoxViews.count {
                 gradientView = UIView(frame: CGRect(x: 0.0 - additionalDistance, y: battersBoxViewRef.frame.width / 2.0 - additionalDistance, width: sideLength, height: sideLength))
             }
             gradientView.backgroundColor = UIColor.clear
-            
+            print("New: \(gradientView.frame.minX), \(gradientView.frame.minY) | \(gradientView.frame.height), \(gradientView.frame.width)")
             /*
              if(j == 0){
              gradientView = UIView(frame: CGRect(x: CGFloat(ii) * CGFloat(100.0/CGFloat(numberOfBoxes)), y: (CGFloat(i) * CGFloat(100.0 / CGFloat(numberOfBoxes))), width: battersBoxViewRef.frame.width / 2.0, height: battersBoxViewRef.frame.height / 2.0))
@@ -244,9 +248,10 @@ for i in 0..<battersBoxViews.count {
             var gradientLayer = CAGradientLayer()
             gradientLayer.frame = CGRect(x: 0, y: 0, width: gradientView.frame.height, height: gradientView.frame.width)
             gradientLayer.colors = [mixedColor.cgColor, battersBoxViewRef.backgroundColor!.cgColor]
+            gradientLayer.locations = [0.2, 1]
             // gradientLayer.colors = [UIColor.red.cgColor, UIColor.blue.cgColor]
             
-            print("===============HERE: \((gradientView.frame.height / 4.0))")
+            // print("===============HERE: \((gradientView.frame.height / 4.0))")
             
             let dimenstion = gradientView.frame.height
             
@@ -261,8 +266,117 @@ for i in 0..<battersBoxViews.count {
             shapeLayer.path = aPath.cgPath
             gradientLayer.mask = shapeLayer
             
+            // gradientLayer.anchorPoint = CGPoint(x: battersBoxViewRef.frame.width, y: battersBoxViewRef.frame.height)
+            // print("Adding a cell at: \(gradientView.frame.minX), \(gradientView.frame.minY)")
             
-            print("Adding a cell at: \(gradientView.frame.minX), \(gradientView.frame.minY)")
+            
+            // gradientView.layer.insertSublayer(gradientLayer, at: 0)
+            // battersBoxViewRef.insertSubview(gradientView, at: 0)
+            gradientView.layer.addSublayer(gradientLayer)
+            
+            if(i == 0 && ii == 0 && j == 2){
+                gradientView.layer.borderColor = UIColor.orange.cgColor
+                gradientView
+            }
+            
+            
+            gradientView.transform = CGAffineTransform(rotationAngle: (CGFloat(-1.0) * CGFloat(M_PI_2 / 2.0)) + CGFloat(j) * CGFloat(M_PI_2))
+            
+            if(j > 0){
+                // gradientView.transform = CGAffineTransform(rotationAngle: CGFloat(j) * CGFloat(M_PI))
+            }
+            
+            
+            
+            // gradientView.transform = CGAffineTransform(rotationAngle: (CGFloat(M_PI_2 / 2) * -1) + CGFloat(M_PI_2 * Double(j)));
+            battersBoxViewRef.addSubview(gradientView)
+            
+            
+            if(i == 0 && ii == 0 && j == 3){
+                gradientView.layer.borderColor = UIColor.orange.cgColor
+                battersBoxViewRef
+                print("w: \(battersBoxViewRef.frame.width)")
+                print("w1: \(gradientView.frame.width)")
+                // break
+            }
+            
+            if(j == 0 && i == 0 && ii == 0){
+                print("Color1: \(mixedColor)")
+                print("Color2: \(battersBoxViewRef.backgroundColor)")
+            }
+        }
+        // break
+        
+        
+        // Now add the barrier gradient views
+        
+        
+        referenceColors = [[0, -1], [1, 0], [0, 1], [-1, 0]]
+        for j in 0..<referenceColors.count{
+            // Correct edge cases
+            if(referenceColors[j][0] + ii < 0){
+                referenceColors[j][0] = 0
+            } else if (referenceColors[j][0] + ii >= battersBoxViews[i].count){
+                referenceColors[j][0] = 0
+            }
+            if(referenceColors[j][1] + i < 0){
+                referenceColors[j][1] = 0
+            } else if(referenceColors[j][1] + i >= battersBoxViews.count){
+                referenceColors[j][1] = 0
+            }
+            
+            
+            
+            let mixedColor = UIColor.blend(color1: battersBoxViewRef.backgroundColor!, color2: battersBoxViews[referenceColors[j][1] + i][referenceColors[j][0] + ii].backgroundColor!)
+            
+            
+            var gradientView: UIView!
+            if(j == 0){
+                gradientView = UIView(frame: CGRect(x: 0.0, y: 0.0 - (battersBoxViewRef.frame.width / 2.0), width: battersBoxViewRef.frame.width, height: battersBoxViewRef.frame.height))
+            } else if(j == 1){
+                gradientView = UIView(frame: CGRect(x: 0.0 + (battersBoxViewRef.frame.width / 2.0), y: 0.0, width: battersBoxViewRef.frame.width, height: battersBoxViewRef.frame.height))
+            } else if(j == 2){
+                gradientView = UIView(frame: CGRect(x: 0.0, y: 0.0 + (battersBoxViewRef.frame.width / 2.0), width: battersBoxViewRef.frame.width, height: battersBoxViewRef.frame.height))
+            } else {
+                gradientView = UIView(frame: CGRect(x: 0.0 - (battersBoxViewRef.frame.width / 2.0), y: 0.0, width: battersBoxViewRef.frame.width, height: battersBoxViewRef.frame.height))
+            }
+            gradientView.backgroundColor = UIColor.clear
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            var gradientLayer = CAGradientLayer()
+            gradientLayer.frame = CGRect(x: 0, y: 0, width: gradientView.frame.height, height: gradientView.frame.width)
+            gradientLayer.colors = [mixedColor.cgColor, battersBoxViewRef.backgroundColor!.cgColor]
+            gradientLayer.locations = [0.5, 1]
+            // gradientLayer.colors = [UIColor.red.cgColor, UIColor.red.cgColor]
+            
+            
+            
+            
+            
+            
+            let dimenstion = gradientView.frame.height
+            
+            var aPath = UIBezierPath()
+            aPath.move(to: CGPoint(x: 0.0, y: 0.0))
+            aPath.addLine(to: CGPoint(x: dimenstion, y: 0.0))
+            aPath.addLine(to: CGPoint(x: dimenstion / 2.0, y: dimenstion))
+            aPath.addLine(to: CGPoint(x: 0.0, y: 0.0))
+            aPath.close()
+            var shapeLayer = CAShapeLayer()
+            shapeLayer.path = aPath.cgPath
+            gradientLayer.mask = shapeLayer
+            
+            
             
             
             // gradientView.layer.insertSublayer(gradientLayer, at: 0)
@@ -270,20 +384,14 @@ for i in 0..<battersBoxViews.count {
             gradientView.layer.addSublayer(gradientLayer)
             
             
-            gradientView.transform = CGAffineTransform(rotationAngle: (CGFloat(M_PI_2 / 2) * -1) + CGFloat(M_PI_2 * Double(j)));
             
-            
+            gradientView.transform = CGAffineTransform(rotationAngle: (CGFloat(M_PI_2 * Double(j))))
             
             battersBoxViewRef.addSubview(gradientView)
             
-            // battersBoxView.viewWithTag(i)?.viewWithTag(ii)?.addSubview(gradientView)
-            
-            
-            // print("+++++++++")
-            
-            // print("Adding a cell at: \(gradientLayer.frame.minX), \(gradientLayer.frame.minY)")
-            
+            // break
         }
+        
         
     }
 }
