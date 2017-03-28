@@ -2,12 +2,14 @@
  * Hitting Zone
  * @author: Chris Schlitt (https://chrisschlitt.com)
  *
- * @data hits: [[Int]] -  array of coordinates in a 1-100 plane corresponding 
+ * @data hits: [[Int]] -  array of coordinates in a 1-100 plane corresponding
  *                        to locations in the strike zone where a baseball 
  *                        player has hit the ball
- * @data strikes: [[Int]] -  array of coordinates in a 1-100 plane corresponding 
- *                        to locations in the strike zone where a baseball 
+ * @data strikes: [[Int]] -  array of coordinates in a 1-100 plane corresponding
+ *                        to locations in the strike zone where a baseball
  *                        player has swung and missed
+ * @data detailed: Int -  integer between 1 and 100 and divisible by 100 corresponding
+ *                        to how detailed the strike zone view will be
  *
  * @output battersBoxView: UIView - A UIView showing a heat map corresponding
  *                        to the players strike zone. Lighter reds for more 
@@ -19,52 +21,7 @@ import UIKit
 import PlaygroundSupport
 
 
-func loadData(csv: String) -> [[Int]] {
-    let fileURL = Bundle.main.url(forResource: csv, withExtension: "csv")
-    var content: String!
-    do {
-        content = try String(contentsOf: fileURL!, encoding: String.Encoding.utf8)
-    } catch {
-        print("File error")
-    }
-    
-    print("Here")
-    
-    let items = content.components(separatedBy: "\n")
-    var valX = [Double]()
-    var valY = [Double]()
-    for i in 1..<items.count {
-        print(items[i])
-        let lineData = (items[i].trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)).components(separatedBy: ",")
-        print(lineData)
-        if(lineData.count < 2){
-            continue
-        }
-        
-        valX.append(Double(lineData[0])!)
-        valY.append(Double(lineData[1])!)
-    }
-    
-    print("Here")
-    
-    let maxX = valX.max()
-    let minX = valX.min()
-    let maxY = valY.max()
-    let minY = valY.min()
-    
-    var convertedPoints = [[Int]]()
-    
-    for i in 0..<valX.count {
-        valX[i] = ((valX[i] + Double(abs(minX!))) / (Double(abs(minX!)) + maxX!)) * 99
-        valY[i] = ((valY[i] + Double(abs(minY!))) / (Double(abs(minY!)) + maxY!)) * 99
-        convertedPoints.append([Int(valX[i]), Int(valY[i])])
-    }
-    
-    return convertedPoints
-}
-
-
-// Create hits and strikes demo data
+// Create hits and strikes random demo data
 /*
 var hits = [[Int]]()
 var strikes = [[Int]]()
@@ -74,31 +31,9 @@ for hit in 0..<100 {
 }
 */
 
-var hits = loadData(csv: "FrancoHits")
-var strikes = loadData(csv: "FrancoStrikes")
-
-
-
-
-
-
-
-
-
-/*
-let file = "FrancoHits.csv" // My change to your code - yours is presumably set off-screen
-if let directories = dirs {
-    let dir = directories[0]; //documents directory
-    let path = dir.stringByAppendingPathComponent(file);
-    
-    //read
-    let content = NSString(contentsOfFile: path, usedEncoding: nil, error: nil)
-    // works...
-}
-
-*/
-
-
+// Import hit and strike data for Maikel Franco (3rd Baseman for the Philadelphia Phillies)
+var hits = CSVLoader.loadData(csv: "FrancoHits")
+var strikes = CSVLoader.loadData(csv: "FrancoStrikes")
 
 /*
  * Define how detailed the resulting view will be
@@ -171,10 +106,6 @@ for i in 0..<numberOfBoxes {
         let cellView = UIView(frame: CGRect(x: (CGFloat(ii) * CGFloat(100.0/CGFloat(numberOfBoxes))), y: (CGFloat(i) * CGFloat(100.0 / CGFloat(numberOfBoxes))), width: CGFloat(100.0 / CGFloat(numberOfBoxes)), height: CGFloat(100.0 / CGFloat(numberOfBoxes))))
         cellView.clipsToBounds = true
         
-        print("Setting frame to: \(ii * numberOfBoxes), \(i * numberOfBoxes)")
-        print("Which makes it  : \(cellView.frame.minX), \(cellView.frame.minY)")
-        print("Bounded at      : \(cellView.bounds.minX), \(cellView.bounds.minY)")
-        
         // Color the cell based on the cell's score
         if(battersBoxData[i][ii] > 0){
             // Calculate shade of red
@@ -195,13 +126,8 @@ for i in 0..<numberOfBoxes {
         }
         
         // Add the cell to the row
-        rowView.addArrangedSubview(cellView)
-        
-        
-        print("1Which makes it : \(cellView.frame.minX), \(cellView.frame.minY)")
-        print("1Bounded at     : \(cellView.bounds.minX), \(cellView.bounds.minY)")
-        
         cellView.tag = ii
+        rowView.addArrangedSubview(cellView)
         battersBoxViewsRow.append(cellView)
     }
     // Add the row to the view
@@ -212,18 +138,17 @@ for i in 0..<numberOfBoxes {
 
 // Display the batters box view
 PlaygroundPage.current.liveView = battersBoxView
-battersBoxView.backgroundColor = UIColor.groupTableViewBackground
 
-
-
+// Raw colored batter's box view
 battersBoxView
 
 
+// Iterate over each box and add gradients between diagional neighboring boxes
 for i in 0..<battersBoxViews.count {
     for ii in 0..<battersBoxViews[i].count {
         let battersBoxViewRef = battersBoxViews[i][ii]
-        print("========")
         
+        // Iterate over the diagional neighboring boxes
         var referenceColors: [[Int]] = [[-1, -1], [1, -1], [1, 1], [-1, 1]]
         for j in 0..<referenceColors.count {
             // Correct edge cases
@@ -243,48 +168,17 @@ for i in 0..<battersBoxViews.count {
             let adjY1 = 0
             let adjX2 = 0
             let adjY2 = referenceColors[j][1]
-            /*
-            print("--------")
-            print("Ref: \(j)")
-            print("X = \(ii)")
-            print("Y = \(i)")
-            print("Frame: \(battersBoxViewRef.frame.minX), \(battersBoxViewRef.frame.minY) -- \(battersBoxViewRef.frame.width), \(battersBoxViewRef.frame.height)")
-            // print("Bounds: \(battersBoxViewRef.bounds.minX), \(battersBoxViewRef.bounds.minY)")
-            print("RefX = \(referenceColors[j][0])")
-            print("RefY = \(referenceColors[j][1])")
-            print("AdjX1 = \(adjX1)")
-            print("AdjY1 = \(adjY1)")
-            print("AdjX2 = \(adjX2)")
-            print("AdjY2 = \(adjY2)")
-            */
             
-            // Get target color
+            // Create the compound target color
             let colorA = UIColor.blend(color1: battersBoxViewRef.backgroundColor!, color2: battersBoxViews[referenceColors[j][1] + i][referenceColors[j][0] + ii].backgroundColor!)
             let colorB = UIColor.blend(color1: battersBoxViews[adjY1 + i][adjX1 + ii].backgroundColor!, color2: battersBoxViews[adjY2 + i][adjX2 + ii].backgroundColor!)
             let mixedColor = UIColor.blend(color1: colorA, color2: colorB)
             
-            
-            
-            
-            
-            // let additionalDistance = (battersBoxViewRef.frame.width / 2.0) * (5.0 / 11.0)
-            // var additionalDistance = CGFloat(((Double(battersBoxViewRef.frame.width).squareRoot()) / 2.0) * ((Double(battersBoxViewRef.frame.width).squareRoot()) / 2.0) - Double(battersBoxViewRef.frame.width / 2.0))
-            
-            
-            // var additionalDistance = (battersBoxViewRef.frame.width / 2.0) * (4/11)
-            // let additionalDistance = CGFloat((Double((battersBoxViewRef.frame.width * battersBoxViewRef.frame.width) * 2.0).squareRoot() - Double(battersBoxViewRef.frame.width)) / 2.0)
-            
-            
-            
-            // let sideLength = CGFloat((Double(((battersBoxViewRef.frame.width / 2.0) * (battersBoxViewRef.frame.width / 2.0)) / 2.0).squareRoot()) * 2.0 * (2.0/(2.0).squareRoot()))
+            // Calculate the size of the shaded box
             let sideLength = CGFloat((Double(((battersBoxViewRef.frame.width / 2.0) * (battersBoxViewRef.frame.width / 2.0)) / 2.0).squareRoot()) * 2.0)
             let additionalDistance = (sideLength - (battersBoxViewRef.frame.width / 2.0)) / 2.0
             
-            print("Original: \(battersBoxViewRef.frame.width)")
-            print("Length: \(sideLength)")
-            print("Additional: \(additionalDistance)")
-            
-            // Create gradient view using background color and new mixed color
+            // Create gradient view
             var gradientView: UIView!
             if(j == 0){
                 gradientView = UIView(frame: CGRect(x: 0.0 - additionalDistance, y: 0.0 - additionalDistance, width: sideLength, height: sideLength))
@@ -296,35 +190,15 @@ for i in 0..<battersBoxViews.count {
                 gradientView = UIView(frame: CGRect(x: 0.0 - additionalDistance, y: battersBoxViewRef.frame.width / 2.0 - additionalDistance, width: sideLength, height: sideLength))
             }
             gradientView.backgroundColor = UIColor.clear
-            print("New: \(gradientView.frame.minX), \(gradientView.frame.minY) | \(gradientView.frame.height), \(gradientView.frame.width)")
-            /*
-             if(j == 0){
-             gradientView = UIView(frame: CGRect(x: CGFloat(ii) * CGFloat(100.0/CGFloat(numberOfBoxes)), y: (CGFloat(i) * CGFloat(100.0 / CGFloat(numberOfBoxes))), width: battersBoxViewRef.frame.width / 2.0, height: battersBoxViewRef.frame.height / 2.0))
-             } else if(j == 1){
-             gradientView = UIView(frame: CGRect(x: CGFloat(ii) * CGFloat(100.0/CGFloat(numberOfBoxes)) + (battersBoxViewRef.frame.width / 2.0), y: (CGFloat(i) * CGFloat(100.0 / CGFloat(numberOfBoxes))), width: battersBoxViewRef.frame.width / 2.0, height: battersBoxViewRef.frame.height / 2.0))
-             } else if(j == 2){
-             gradientView = UIView(frame: CGRect(x: CGFloat(ii) * CGFloat(100.0/CGFloat(numberOfBoxes)), y: (CGFloat(i) * CGFloat(100.0 / CGFloat(numberOfBoxes))) + (battersBoxViewRef.frame.height / 2.0), width: battersBoxViewRef.frame.width / 2.0, height: battersBoxViewRef.frame.height / 2.0))
-             } else {
-             gradientView = UIView(frame: CGRect(x: CGFloat(ii) * CGFloat(100.0/CGFloat(numberOfBoxes)) + (battersBoxViewRef.frame.width / 2.0), y: (CGFloat(i) * CGFloat(100.0 / CGFloat(numberOfBoxes))) + (battersBoxViewRef.frame.height / 2.0), width: battersBoxViewRef.frame.width / 2.0, height: battersBoxViewRef.frame.height / 2.0))
-             }
-            */
             
-            
-            // gradientView.backgroundColor = UIColor.yellow
-            
-            
-            
-            
+            // Create the gradient layer using background color and new mixed color
             var gradientLayer = CAGradientLayer()
             gradientLayer.frame = CGRect(x: 0, y: 0, width: gradientView.frame.height, height: gradientView.frame.width)
             gradientLayer.colors = [mixedColor.cgColor, battersBoxViewRef.backgroundColor!.cgColor]
             gradientLayer.locations = [0.2, 1]
-            // gradientLayer.colors = [UIColor.red.cgColor, UIColor.blue.cgColor]
             
-            // print("===============HERE: \((gradientView.frame.height / 4.0))")
-            
+            // Crop the gradient layer
             let dimenstion = gradientView.frame.height
-            
             var aPath = UIBezierPath()
             aPath.move(to: CGPoint(x: (dimenstion / 2.0), y: 0.0))
             aPath.addLine(to: CGPoint(x: dimenstion, y: (dimenstion / 2.0)))
@@ -336,57 +210,24 @@ for i in 0..<battersBoxViews.count {
             shapeLayer.path = aPath.cgPath
             gradientLayer.mask = shapeLayer
             
-            // gradientLayer.anchorPoint = CGPoint(x: battersBoxViewRef.frame.width, y: battersBoxViewRef.frame.height)
-            // print("Adding a cell at: \(gradientView.frame.minX), \(gradientView.frame.minY)")
-            
-            
-            // gradientView.layer.insertSublayer(gradientLayer, at: 0)
-            // battersBoxViewRef.insertSubview(gradientView, at: 0)
+            // Add the layer and rotate
             gradientView.layer.addSublayer(gradientLayer)
-            
-            if(i == 0 && ii == 0 && j == 2){
-                gradientView.layer.borderColor = UIColor.orange.cgColor
-                gradientView
-            }
-            
-            
             gradientView.transform = CGAffineTransform(rotationAngle: (CGFloat(-1.0) * CGFloat(M_PI_2 / 2.0)) + CGFloat(j) * CGFloat(M_PI_2))
-            
-            if(j > 0){
-                // gradientView.transform = CGAffineTransform(rotationAngle: CGFloat(j) * CGFloat(M_PI))
-            }
-            
-            
-            
-            // gradientView.transform = CGAffineTransform(rotationAngle: (CGFloat(M_PI_2 / 2) * -1) + CGFloat(M_PI_2 * Double(j)));
             battersBoxViewRef.addSubview(gradientView)
-            
-            
-            if(i == 0 && ii == 0 && j == 3){
-                gradientView.layer.borderColor = UIColor.orange.cgColor
-                battersBoxViewRef
-                print("w: \(battersBoxViewRef.frame.width)")
-                print("w1: \(gradientView.frame.width)")
-                // break
-            }
-            
-            if(j == 0 && i == 0 && ii == 0){
-                print("Color1: \(mixedColor)")
-                print("Color2: \(battersBoxViewRef.backgroundColor)")
-            }
         }
-        // break
-        
     }
 }
 
+// Colored batter's box with corner gradients
 battersBoxView
 
+
+// Iterate over each box and add gradients between neighboring boxes
 for i in 0..<battersBoxViews.count {
     for ii in 0..<battersBoxViews[i].count {
-        // Now add the barrier gradient views
         let battersBoxViewRef = battersBoxViews[i][ii]
         
+        // Iterate over the neighboring boxes
         var referenceColors = [[0, -1], [1, 0], [0, 1], [-1, 0]]
         for j in 0..<referenceColors.count{
             // Correct edge cases
@@ -401,11 +242,10 @@ for i in 0..<battersBoxViews.count {
                 referenceColors[j][1] = 0
             }
             
-            
-            
+            // Bland the colors
             let mixedColor = UIColor.blend(color1: battersBoxViewRef.backgroundColor!, color2: battersBoxViews[referenceColors[j][1] + i][referenceColors[j][0] + ii].backgroundColor!)
             
-            
+            // Create the gradient view
             var gradientView: UIView!
             if(j == 0){
                 gradientView = UIView(frame: CGRect(x: 0.0, y: 0.0 - (battersBoxViewRef.frame.width / 2.0), width: battersBoxViewRef.frame.width, height: battersBoxViewRef.frame.height))
@@ -418,30 +258,14 @@ for i in 0..<battersBoxViews.count {
             }
             gradientView.backgroundColor = UIColor.clear
             
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
+            // Create the gradient layer using the background color and the new blended color
             var gradientLayer = CAGradientLayer()
             gradientLayer.frame = CGRect(x: 0, y: 0, width: gradientView.frame.height, height: gradientView.frame.width)
             gradientLayer.colors = [mixedColor.cgColor, battersBoxViewRef.backgroundColor!.cgColor]
             gradientLayer.locations = [0.5, 1]
-            // gradientLayer.colors = [UIColor.red.cgColor, UIColor.red.cgColor]
             
-            
-            
-            
-            
-            
+            // Crop the gradient layer
             let dimenstion = gradientView.frame.height
-            
             var aPath = UIBezierPath()
             aPath.move(to: CGPoint(x: 0.0, y: 0.0))
             aPath.addLine(to: CGPoint(x: dimenstion, y: 0.0))
@@ -452,57 +276,18 @@ for i in 0..<battersBoxViews.count {
             shapeLayer.path = aPath.cgPath
             gradientLayer.mask = shapeLayer
             
-            
-            
-            
-            // gradientView.layer.insertSublayer(gradientLayer, at: 0)
-            // battersBoxViewRef.insertSubview(gradientView, at: 0)
+            // Add the layer and rotate
             gradientView.layer.addSublayer(gradientLayer)
-            
-            
-            
             gradientView.transform = CGAffineTransform(rotationAngle: (CGFloat(M_PI_2 * Double(j))))
-            
             battersBoxViewRef.addSubview(gradientView)
-            
-            // break
         }
         
         
     }
 }
 
+// Colored batter's box view after compound gradients
 battersBoxView
-
-// Add Color Blending through Multiple Gradient Layers
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*
-var referenceColors = [[-1, -1], [0, -1], [1, -1], [-1, 0], [0, 0], [1, 0], [-1, 1], [0, 1], [1, 1]]
-for referenceColor in referenceColors {
-    var view = UIView(frame: battersBoxView.frame)
-    
-}
-
-var gradient = CAGradientLayer()
-*/
-
-
-// Print Statistics
-print("Number of Boxes: \(numberOfBoxes)")
-print("maxHits: \(maxScore)")
-print("maxStrikes: \(minScore)")
 
 
 
